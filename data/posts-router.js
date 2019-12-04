@@ -122,6 +122,7 @@ router.put('/:id', (req, res) => {
         });
 });
 
+
 router.get('/:id/comments', (req, res) => {
     db.findCommentById(req.params.id)
         .then(comment => {
@@ -143,27 +144,44 @@ router.get('/:id/comments', (req, res) => {
         });
 });
 
+
+
 router.post('/:id/comments', (req, res) => {
+    const id = req.params.id;
     const commentData = req.body;
     const { text } = commentData
-    if (!text) {
-        res
-            .status(400)
-            .json({ errorMessage: 'Please provide text for the comment.' })
-    } else {
-        db.insertComment(commentData)
-            .then(comment => {
+    console.log('post id', id);
+
+    //called the wrong function 'findPostComments'
+    db.findCommentById(id)
+        .then(post => {
+            console.log('post', post)
+            console.log('comment test', text)
+            if (!post) {
                 res
-                    .status(201)
-                    .json(comment);
-            })
-            .catch(error => {
-                console.log('error on POST /:id/comments', error);
+                    .status(404)
+                    .json({ message: "The post with the specified ID does not exist." })
+            } else if (!text) {
                 res
-                    .status(500)
-                    .json({ error: 'There was an error while saving the comment to the database.' })
-            });
-    };
+                    .status(400)
+                    .json({ errorMessage: "Please provide text for the comment." })
+            } else {
+                console.log('comment body', commentData)
+                //had the wrong peramiters for the argument via the wrong function
+                db.insertComment(commentData)
+                    .then(comment => {
+                        res
+                            .status(200)
+                            .json(comment)
+                    })
+                    .catch(error => {
+                        console.log('error on POST /:id/comments', error);
+                        res
+                            .status(500)
+                            .json({ error: "There was an error while saving the comment to the database" });
+                    });
+            }
+        });
 });
 
 
